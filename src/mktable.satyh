@@ -1,0 +1,129 @@
+@require: pervasives
+@require: list
+@require: option
+@require: gr
+@require: color
+
+%module MkTable : sig
+%  type rule
+%
+%  type column-format
+%
+%  type column-info
+%
+%  type table
+%                
+%  val \table : [?paddings; ?point * point; table] inline-cmd
+%end = struct
+
+%%
+type rule = length * length -> color -> point -> point -> graphics list
+
+type column-format = context -> inline-text -> inline-boxes
+
+type column-info = column-format list * rule list
+
+type table = (inline-text list) list * rule list * rule list * column-format
+
+%%
+let-rec map2
+  | f [] _            = []
+  | f _ []            = []
+  | f (x::xs) (y::ys) = f x y :: map2 f xs ys
+
+%%
+let make-column-format fn = ([ fn ], [])
+
+let mktable = ([], [], [], [])
+
+let get-column-formats (fmts, _) = fmts
+
+%%            
+let table-scheme ctx pads rule-width (rows, v-rules, h-rules, col-formats) =
+  let pads = Option.from (5pt, 5pt, 2pt, 2pt) pads in
+  let rule-width = Option.from (1pt, 0.5pt) rule-width in
+  let color = get-text-color ctx in
+
+  let rows = List.reverse rows in
+  let v-rules = List.reverse v-rules in
+
+  let rows = rows |>
+    List.map (map2 (fun fmt ib -> NormalCell(pads, fmt ctx ib)) col-formats) in
+
+  let rules xs ys =
+    match (xs, List.reverse xs, ys, List.reverse ys) with
+    | (x0::_, xn::_, y0::_, yn::_) -> (
+      let v-rules = map2
+        (fun rule y -> rule rule-width color (x0, y) (xn, y)) v-rules ys
+          |> List.concat
+      in
+      let h-rules = map2
+        (fun rule x -> rule rule-width color (x, y0) (x, yn)) h-rules xs
+          |> List.concat
+      in
+      List.concat [v-rules; h-rules]
+    )
+    | _ -> []
+  in
+  tabular rows rules
+
+let-inline ctx \table ?:pads ?:rule-width table =
+  table-scheme ctx pads rule-width table
+
+%%
+let rule-none _ _ _ _ = []
+
+let rule-thin (_, thin) color p0 p1 =
+  [ stroke thin color (Gr.line p0 p1) ]
+
+let rule-thick (thick, _) color p0 p1 =
+  [ stroke thick color (Gr.line p0 p1) ]
+
+%%
+let ( << ) = make-column-format (fun ctx it -> read-inline ctx it ++ inline-fil)
+
+let ( >> ) = make-column-format (fun ctx it -> inline-fil ++ read-inline ctx it)
+
+let ( >< ) = make-column-format (fun ctx it -> inline-fil ++ read-inline ctx it ++ inline-fil)
+
+%%
+let ( +... ) (fmt0, rule0) (fmt1, rule1) =
+  (List.concat [fmt0; fmt1], List.concat [rule0; rule1])
+
+%%
+let partition num lst =
+  let-rec aux
+    | (0) acc lst     = (List.reverse acc, lst)
+    | n   acc []      = (List.reverse acc, [])
+    | n   acc (x::xs) = aux (n - 1) (x::acc) xs
+  in
+  aux num [] lst
+
+let-rec split-rows num row =
+  match partition num row with
+  | (head, t::tail) -> head :: split-rows num tail
+  | (head, [])      -> [ head ]
+
+let column-size (_, _, _, fmt) = List.length fmt
+
+let add-rule rule (row, vl, hl, fmt) = (row, rule::vl, hl, fmt)
+
+let add-row r (row, vl, hl, fmt) = (r::row, vl, hl, fmt)
+
+let-rec cdr
+  | (x::xs) = xs
+  | []      = []
+
+let append-row-after-rule rule table row =
+  let row = split-rows (column-size table) row in
+  let table = table |> add-rule rule in
+  let table = row
+    |> List.fold-left (fun table row -> table |> add-row row) table in
+  cdr row
+    |> List.fold-left (fun table _ -> table |> add-rule rule-none) table
+  
+
+%%
+let ( -=== ) = append-row-after-rule rule-thick
+
+let ( ---- ) = append-row-after-rule rule-thin
