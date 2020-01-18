@@ -21,7 +21,7 @@ authors: "Yuki Takagi <takagiy.4dev@gmail.com> <https://github.com/takagiy>"
 license: "MIT"
 homepage: "https://github.com/takagiy/satysfi-MkTable"
 bug-reports: "https://github.com/takagiy/satysfi-MkTable/issues"
-dev-repo: "https://github.com/takagiy/satysfi-MkTable.git"
+dev-repo: "git+https://github.com/takagiy/satysfi-MkTable.git"
 depends: [
   "satysfi" {>= "0.0.3" & < "0.0.4"}
   "satyrographos" {>= "0.0.2" & < "0.0.3"}
