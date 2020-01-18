@@ -1,0 +1,36 @@
+opam-version: "2.0"
+name: "satysfi-mktable"
+version: "0.1.0"
+synopsis: "An ultra clear and configurable table making DSL for SATySFi"
+description: """
+MkTable (pronounced as 'make table') is a table making DSL for SATySFi.
+This makes it possible to treat tables as a kind of values in SATySFi
+and provides a markdown like (but more configurable) sytax to denote
+tables.
+
+The tables can have vertical or horizontal rules and alignments.
+You need not to give or to write function of configuration of rules
+or alignments, or matrix of inline-text to put a table, but only one
+table is actually required.
+
+Optionally, you can specify the paddings of cells and the set of
+width of rules.
+"""
+maintainer: "Yuki Takagi <takagiy.4dev@gmail.com> <https://github.com/takagiy>"
+authors: "Yuki Takagi <takagiy.4dev@gmail.com> <https://github.com/takagiy>"
+license: "MIT"
+homepage: "https://github.com/takagiy/satysfi-MkTable"
+bug-reports: "https://github.com/takagiy/satysfi-MkTable/issues"
+dev-repo: "https://github.com/takagiy/satysfi-MkTable.git"
+depends: [
+  "satysfi" {>= "0.0.3" & < "0.0.4"}
+  "satyrographos" {>= "0.0.2" & < "0.0.3"}
+  "satysfi-dist"
+]
+build: []
+install: [
+  ["satyrographos" "opam" "install"
+   "-name" "mktable"
+   "-prefix" "%{prefix}%"
+   "-script" "%{build}%/Satyristes"]
+]
