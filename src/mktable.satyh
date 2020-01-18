@@ -29,13 +29,13 @@ module MkTable : sig
 
   val ( >< ) : column-info
 
-  val ( + ) : column-info -> column-info -> column-info
+  val ( -+- ) : column-info -> column-info -> column-info
 
-  val ( - ) : column-info -> column-info -> column-info
+  val ( -*- ) : column-info -> column-info -> column-info
 
   val ( |- ) : table -> table -> table
 
-  %val ( -| ) : column-info -> inline-text list -> table
+  val ( -| ) : column-info -> inline-text list -> table
 end = struct
 
   %%
@@ -177,15 +177,21 @@ end = struct
     (List.concat [fmt0; fmt1], List.concat [rule0; [rule]; rule1])
 
   %%
-  let ( + ) = join-column-info-with-rule rule-thin
+  let ( -+- ) = join-column-info-with-rule rule-thin
 
-  let ( - ) = join-column-info-with-rule rule-none
+  let ( -*- ) = join-column-info-with-rule rule-none
 
   %%
   let ( |- ) (r0, v0, h0, c0) (r1, v1, h1, c1) =
-    (List.concat [r1; r0], List.concat [v1; v0], h1, c1)
+    (List.concat [r1; r0], List.concat [v1; v0], rule-none::h1, c1)
 
   %%
-  %let 
+  let init-table-with-rule-and-column-info rule (fmt0, rule0) rows =
+    let table = ([], [], rule0, fmt0) in
+    let table = append-row-after-rule rule table rows in
+    table
+
+  %%
+  let ( -| ) = init-table-with-rule-and-column-info rule-thin 
 
 end
