@@ -35,7 +35,7 @@ module MkTable : sig
 
   val ( |- ) : table -> table -> table
 
-  val ( -| ) : column-info -> inline-text list -> table
+  %val ( -| ) : column-info -> inline-text list -> table
 end = struct
 
   %%
@@ -121,15 +121,6 @@ end = struct
   let ( >< ) = make-column-format column-format-center
 
   %%
-  let join-column-info-with-rule rule (fmt0, rule0) (fmt1, rule1) =
-    (List.concat [fmt0; fmt1], List.concat [rule0; [rule]; rule1])
-
-  %%
-  let ( + ) = join-column-info-with-rule rule-thin
-
-  let ( - ) = join-column-info-with-rule rule-none
-
-  %%
   let partition num lst =
     let-rec aux
       | (0) acc lst     = (List.reverse acc, lst)
@@ -180,5 +171,21 @@ end = struct
   let ( !==== ) = init-table-with-rule rule-thick
 
   let ( !---- ) = init-table-with-rule rule-thin
+
+  %%
+  let join-column-info-with-rule rule (fmt0, rule0) (fmt1, rule1) =
+    (List.concat [fmt0; fmt1], List.concat [rule0; [rule]; rule1])
+
+  %%
+  let ( + ) = join-column-info-with-rule rule-thin
+
+  let ( - ) = join-column-info-with-rule rule-none
+
+  %%
+  let ( |- ) (r0, v0, h0, c0) (r1, v1, h1, c1) =
+    (List.concat [r1; r0], List.concat [v1; v0], h1, c1)
+
+  %%
+  %let 
 
 end
