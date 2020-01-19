@@ -16,27 +16,37 @@ module MkTable : sig
   direct \table : [(length * length * length * length)?; (length * length)?; table] inline-cmd
 
   val make-column-format : (context -> inline-text -> inline-boxes) -> column-info
-
+%%
   val ( !==== ) : inline-text list -> table
 
   val ( !---- ) : inline-text list -> table
-
+%%
   val ( ---- ) : table -> inline-text list -> table
 
   val ( -=== ) : table -> inline-text list -> table
-
+%%
   val ( < ) : column-info
 
   val ( > ) : column-info
 
   val ( >< ) : column-info
-
+%%
   val ( -+- ) : column-info -> column-info -> column-info
 
   val ( -*- ) : column-info -> column-info -> column-info
-
+%%
   val ( |- ) : table -> table -> table
 
+  val ( |. ) : table -> table -> table
+
+  val ( |= ) : table -> table -> table
+%%
+  val ( ||- ) : table -> table -> table
+
+  val ( ||. ) : table -> table -> table
+
+  val ( ||= ) : table -> table -> table
+%%
   val ( -| ) : column-info -> inline-text list -> table
 end = struct
 
@@ -183,9 +193,32 @@ end = struct
 
   let ( -*- ) = join-column-info-with-rule rule-none
 
+
   %%
-  let ( |- ) (r0, v0, h0, c0) (r1, v1, h1, c1) =
-    (List.concat [r1; r0], List.concat [v1; v0], rule-none::h1, c1)
+  let-rec remove-last
+    | []      = []
+    | (x::[]) = []
+    | (x::xs) = x :: remove-last xs
+
+  let concat-vertical-with-rules v-rule h-rule (r0, v0, h0, c0) (r1, v1, h1, c1) =
+    let v1 = remove-last v1 in
+    (List.concat [r1; r0], List.concat [v1; [v-rule]; v0], h-rule::h1, c1)
+
+
+  %%
+  %let ( |- ) (r0, v0, h0, c0) (r1, v1, h1, c1) =
+  %  (List.concat [r1; r0], List.concat [v1; v0], rule-none::h1, c1)
+  let ( |- ) = concat-vertical-with-rules rule-thin rule-none
+
+  let ( |. ) = concat-vertical-with-rules rule-none rule-none
+
+  let ( |= ) = concat-vertical-with-rules rule-thick rule-none
+
+  let ( ||- ) = concat-vertical-with-rules rule-thin rule-thin
+
+  let ( ||. ) = concat-vertical-with-rules rule-none rule-thin
+
+  let ( ||= ) = concat-vertical-with-rules rule-thick rule-thin
 
   %%
   let init-table-with-rule-and-column-info rule (fmt0, rule0) rows =
@@ -194,6 +227,6 @@ end = struct
     table
 
   %%
-  let ( -| ) = init-table-with-rule-and-column-info rule-thin 
+  let ( -| ) = init-table-with-rule-and-column-info rule-thin
 
 end
