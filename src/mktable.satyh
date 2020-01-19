@@ -24,6 +24,12 @@ module MkTable : sig
   val ( !---- ) : inline-text list -> table
 
   val ( !. )    : inline-text list -> table
+
+%%
+  val ( != ) : column-info -> column-info
+
+  val ( !- ) : column-info -> column-info
+
 %%
   val ( ---- ) : table -> inline-text list -> table
 
@@ -61,7 +67,7 @@ end = struct
 
   type column-format = context -> inline-text -> inline-boxes
 
-  type column-info = column-format list * rule list
+  type column-info = column-format list * rule list * rule option
 
   type table = ((inline-text * column-format) list) list * rule list * rule list * column-format list
 
@@ -80,11 +86,11 @@ end = struct
     | n item = item :: repeat (n - 1) item
 
   %%
-  let make-column-format fn = ([ fn ], [])
+  let make-column-format fn = ([ fn ], [], None)
 
   let mktable = ([], [], [], [])
 
-  let get-column-formats (fmts, _) = fmts
+  let get-column-formats (fmts, _, _) = fmts
 
   %%
   let table-scheme ctx pads rule-width (rows, v-rules, h-rules, col-formats) =
@@ -196,8 +202,12 @@ end = struct
   let ( !. ) = init-table-with-rule rule-none
 
   %%
-  let join-column-info-with-rule rule (fmt0, rule0) (fmt1, rule1) =
-    (List.concat [fmt0; fmt1], List.concat [rule0; [rule]; rule1])
+  let-rec one-of
+    | (Some(x)) _ = Some(x)
+    | (None) optx = optx
+
+  let join-column-info-with-rule rule (fmt0, rule0, v-rule0) (fmt1, rule1, v-rule1) =
+    (List.concat [fmt0; fmt1], List.concat [rule0; [rule]; rule1], one-of v-rule0 v-rule1)
 
   %%
   let ( -+- ) = join-column-info-with-rule rule-thin
@@ -232,12 +242,22 @@ end = struct
   let ( ||= ) = concat-vertical-with-rules rule-thick rule-thin
 
   %%
-  let init-table-with-rule-and-column-info rule (fmt0, rule0) rows =
-    let table = ([], [], rule0, fmt0) in
+  let init-table-with-rule-and-column-info rule (fmt0, h-rule0, v-rule0) rows =
+    let rule = Option.from rule v-rule0 in
+    let table = ([], [], h-rule0, fmt0) in
     let table = append-row-after-rule rule table rows in
     table
 
   %%
   let ( -| ) = init-table-with-rule-and-column-info rule-thin
 
+  %%
+  let column-info-add-horizontal-rule rule info =
+    join-column-info-with-rule rule-none
+      ([], [], Some(rule)) info
+
+  %%
+  let ( != ) = column-info-add-horizontal-rule rule-thick
+
+  let ( !- ) = column-info-add-horizontal-rule rule-thin
 end
