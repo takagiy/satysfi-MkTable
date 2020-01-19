@@ -20,10 +20,14 @@ module MkTable : sig
   val ( !==== ) : inline-text list -> table
 
   val ( !---- ) : inline-text list -> table
+
+  val ( !. )    : inline-text list -> table
 %%
   val ( ---- ) : table -> inline-text list -> table
 
   val ( -=== ) : table -> inline-text list -> table
+
+  val ( -. )   : table -> inline-text list -> table
 %%
   val ( < ) : column-info
 
@@ -170,6 +174,8 @@ end = struct
 
   let ( ---- ) = append-row-after-rule rule-thin
 
+  let ( -. ) = append-row-after-rule rule-none
+
   %%
   let init-table-with-rule rule header-texts =
     let num-cols = List.length header-texts in
@@ -183,6 +189,8 @@ end = struct
   let ( !==== ) = init-table-with-rule rule-thick
 
   let ( !---- ) = init-table-with-rule rule-thin
+
+  let ( !. ) = init-table-with-rule rule-none
 
   %%
   let join-column-info-with-rule rule (fmt0, rule0) (fmt1, rule1) =
