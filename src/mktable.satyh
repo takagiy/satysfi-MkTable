@@ -12,10 +12,12 @@ module MkTable : sig
   type column-info
 
   type table
-
+%%
   direct \table : [(length * length * length * length)?; (length * length)?; table] inline-cmd
-
+%%
   val make-column-format : (context -> inline-text -> inline-boxes) -> column-info
+
+  val make-horizontal-rule : (length * length -> color -> point -> point -> graphics list) -> table -> inline-text list -> table
 %%
   val ( !==== ) : inline-text list -> table
 
@@ -168,13 +170,14 @@ end = struct
     cdr row
       |> List.fold-left (fun table _ -> table |> add-rule rule-none) table
 
+  let make-horizontal-rule = append-row-after-rule
 
   %%
-  let ( -=== ) = append-row-after-rule rule-thick
+  let ( -=== ) = make-horizontal-rule rule-thick
 
-  let ( ---- ) = append-row-after-rule rule-thin
+  let ( ---- ) = make-horizontal-rule rule-thin
 
-  let ( -. ) = append-row-after-rule rule-none
+  let ( -. ) = make-horizontal-rule rule-none
 
   %%
   let init-table-with-rule rule header-texts =
